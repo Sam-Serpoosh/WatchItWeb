@@ -2,3 +2,6 @@
 elm-stuff
 # vim
 *.swp
+*.swo
+# trivial
+TODO
