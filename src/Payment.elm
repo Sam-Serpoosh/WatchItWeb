@@ -16,7 +16,7 @@ defaultPayment = { value       = 0.0
                  , description = "default" 
                  }
 
-createPayments :: List String -> List Payment
+createPayments : List String -> List Payment
 createPayments paymentsStr = L.map createPayment paymentsStr
 
 createPayment : String -> Payment
@@ -43,6 +43,11 @@ paymentsByCategory payments =
 paidPerCategory : List (String, List Payment) -> List (String, Float)
 paidPerCategory = L.map (\(cat, payments) -> (cat, payments |> totalPaid))
 
+percentPaidPerCategory : List (String, Float) -> List (String, Float)
+percentPaidPerCategory paidPerCat =
+  let total = L.foldl (\a b -> a + b) 0.0 (L.map snd paidPerCat)
+  in L.map (\(cat, paid) -> (cat, paid / total)) paidPerCat
+
 -- Tests for Payment
 
 testCreatePayment : String -> Payment -> Bool
@@ -61,11 +66,18 @@ testPaidPerCategory : List (String, List Payment) -> List (String, Float) -> Boo
 testPaidPerCategory paymentsByCat expectedPaidPerCat =
   (paidPerCategory paymentsByCat) == expectedPaidPerCat
 
+testPercentPaidPerCategory : List (String, Float) -> List (String, Float) -> Bool
+testPercentPaidPerCategory paidPerCat expectedPercents =
+  (percentPaidPerCategory paidPerCat) == expectedPercents
+
 expectedGrouped : List (String, List Payment)
 expectedGrouped = [("food", [lunch, snack]), ("transportation", [uber])]
 
 samplePayments : List Payment
 samplePayments = [lunch, uber, snack]
+
+samplePaidPerCat : List (String, Float)
+samplePaidPerCat = [("food", 15.0), ("transportation", 25.0)]
 
 lunch : Payment
 lunch = { value       = 10.0
