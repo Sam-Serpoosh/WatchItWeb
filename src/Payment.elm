@@ -1,15 +1,22 @@
-module Payment exposing (
-  createPayments,
-  totalPaid,
-  paymentsByCategory,
-  paidPerCategory,
-  percentPaidPerCategory)
+module Payment
+  exposing
+    ( Payment
+    , createPayment
+    , createPayments
+    , totalPaid
+    , paymentsByCategory
+    , paidPerCategory
+    , percentPaidPerCategory
+    )
 
 {-| This module does some basic calculations and stats
 on a list of Payments and return some reports.
 
+# Data Types
+@docs Payment
+
 # Creation of Payment
-@docs createPayments
+@docs createPayment, createPayments
 
 # Calculations
 @docs totalPaid, paymentsByCategory, paidPerCategory, percentPaidPerCategory
@@ -21,16 +28,18 @@ import List       as L
 import List.Extra as LE
 import Util
 
+{-| Payment Record with 3 fields:
+      - $ value
+      - category it belongs to (e.g food)
+      - description of payment (e.g lunch with Bob)
+
+-}
+
 type alias Payment = { value : Float
                      , category: String
                      , description: String
                      }
 
-defaultPayment : Payment
-defaultPayment = { value       = 0.0
-                 , category    = "food"
-                 , description = "default" 
-                 }
 {-| create a Payment from a list of CSV Strings.
 
     createPayments ["10.00,food,lunch", "25.00,transportation,uber"] == [p1, p2]
@@ -61,7 +70,7 @@ paymentsByCategory payments =
 
 {-| Calculates total amound paid per category.
 
-    totalPaid [p1-food-10, p2-transportation-5, p3-food-20] == [("food", 30), ("transportation", 5)]
+    totalPaid [("food", [p1, p3]), ("transportation", [p2])] == [("food", 30), ("transportation", 5)]
 -}
 
 paidPerCategory : List (String, List Payment) -> List (String, Float)
@@ -69,13 +78,18 @@ paidPerCategory = L.map (\(cat, payments) -> (cat, payments |> totalPaid))
 
 {-| Calculates percent of total paid for each category.
 
-    totalPaid [p1-food-10, p2-transportation-25, p3-food-5] == [("food", 0.375), ("transportation", 0.625)]
+    totalPaid [("food", 30), ("transportation", 5)] == [("food", 0.375), ("transportation", 0.625)]
 -}
 
 percentPaidPerCategory : List (String, Float) -> List (String, Float)
 percentPaidPerCategory paidPerCat =
   let total = L.foldl (\a b -> a + b) 0.0 (L.map snd paidPerCat)
   in L.map (\(cat, paid) -> (cat, paid / total)) paidPerCat
+
+{-| create a Payment from a CSV Strings.
+
+    createPayments "10.00,food,lunch == p1
+-}
 
 createPayment : String -> Payment
 createPayment str =
@@ -89,51 +103,8 @@ createPayment str =
                            , description = desc
                            }
 
--- Tests for Payment
-
-testCreatePayment : String -> Payment -> Bool
-testCreatePayment str payment =
-  (createPayment str) == payment
-
-testTotalPaid : List Payment -> Float -> Bool
-testTotalPaid payments expectedPaid =
-  (totalPaid payments) == expectedPaid
-
-testPaymentsByCategory : List Payment -> List (String, List Payment) -> Bool
-testPaymentsByCategory payments expectedGrouped =
-  (paymentsByCategory payments) == expectedGrouped
-
-testPaidPerCategory : List (String, List Payment) -> List (String, Float) -> Bool
-testPaidPerCategory paymentsByCat expectedPaidPerCat =
-  (paidPerCategory paymentsByCat) == expectedPaidPerCat
-
-testPercentPaidPerCategory : List (String, Float) -> List (String, Float) -> Bool
-testPercentPaidPerCategory paidPerCat expectedPercents =
-  (percentPaidPerCategory paidPerCat) == expectedPercents
-
-expectedGrouped : List (String, List Payment)
-expectedGrouped = [("food", [lunch, snack]), ("transportation", [uber])]
-
-samplePayments : List Payment
-samplePayments = [lunch, uber, snack]
-
-samplePaidPerCat : List (String, Float)
-samplePaidPerCat = [("food", 15.0), ("transportation", 25.0)]
-
-lunch : Payment
-lunch = { value       = 10.0
-        , category    = "food"
-        , description = "lunch"
-        }
-
-snack : Payment
-snack  = { value = 5.0
-         , category = "food"
-         , description = "snack"
-         }
-
-uber : Payment
-uber = { value    = 25.0
-       , category = "transportation"
-       , description = "uber"
-       }
+defaultPayment : Payment
+defaultPayment = { value       = 0.0
+                 , category    = "food"
+                 , description = "default"
+                 }
